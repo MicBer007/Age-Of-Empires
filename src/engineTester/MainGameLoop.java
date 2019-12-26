@@ -19,6 +19,7 @@ import terrains.Terrain;
 import textures.ModelTexture;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
+import toolbox.MousePicker;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
@@ -58,9 +59,14 @@ public class MainGameLoop {
         camera.setPosition(new Vector3f(0, 150, 0));
         camera.setPitch(65);
         camera.setYaw(45);
+        
+        MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
          
         while(!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_X)){
             camera.move();
+            
+            picker.update();
+            unit.setPosition(picker.getCurrentTerrainPoint());
             
             renderer.processEntity(unit);
             renderer.processTerrain(terrain);

@@ -8,6 +8,7 @@ import models.RawModel;
 import models.TexturedModel;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
  
@@ -61,13 +62,13 @@ public class MainGameLoop {
         camera.setYaw(45);
         
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
-         
+        
         while(!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_X)){
             camera.move();
-            
-            picker.update();
-            unit.setPosition(picker.getCurrentTerrainPoint());
-            
+            if(Mouse.isButtonDown(0)) {
+            	picker.update();
+            	unit.setPosition(picker.getCurrentTerrainPoint());
+            }
             renderer.processEntity(unit);
             renderer.processTerrain(terrain);
             renderer.processTerrain(terrain2);

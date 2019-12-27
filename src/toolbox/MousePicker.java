@@ -1,5 +1,6 @@
 package toolbox;
 
+
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Matrix4f;
@@ -12,7 +13,7 @@ import entities.Camera;
 
 public class MousePicker {
 
-	private static final int RECURSION_COUNT = 200;
+	private static final int RECURSION_COUNT = 100;
 	private static final float RAY_RANGE = 600;
 
 	private Vector3f currentRay = new Vector3f();
@@ -132,5 +133,5 @@ public class MousePicker {
 	private Terrain getTerrain(float worldX, float worldZ) {
 		return terrain;
 	}
-
+	
 }

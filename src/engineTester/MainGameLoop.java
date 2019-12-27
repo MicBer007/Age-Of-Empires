@@ -2,7 +2,6 @@ package engineTester;
  
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
  
 import models.RawModel;
 import models.TexturedModel;
@@ -16,6 +15,7 @@ import renderEngine.DisplayManager;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import renderEngine.OBJLoader;
+import terrains.Location;
 import terrains.Terrain;
 import textures.ModelTexture;
 import textures.TerrainTexture;
@@ -24,7 +24,6 @@ import toolbox.MousePicker;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
-import entities.Unit;
  
 public class MainGameLoop {
  
@@ -47,7 +46,11 @@ public class MainGameLoop {
         TexturedModel unitModel = new TexturedModel(unitRawModel, new ModelTexture(loader.loadTexture("unit")));
         
 
-        Entity unit = new Entity(unitModel, new Vector3f(0, 20, 0), 0, 0, 0, 1);
+        Entity unit = new Entity(unitModel, new Vector3f(0, 0, 0), 0, 0, 0, 1);
+        Location unitLocation = new Location(unit.getPosition());
+        
+        List<Entity> units = new ArrayList<Entity>();
+        units.add(unit);
         
         Terrain terrain = new Terrain(0,0,loader, texturePack, blendMap);
         Terrain terrain2 = new Terrain(1,0,loader, texturePack, blendMap);
@@ -63,11 +66,33 @@ public class MainGameLoop {
         
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
         
+        Entity selectedUnit = null;
+        
         while(!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_X)){
             camera.move();
             if(Mouse.isButtonDown(0)) {
+            	try {
+            		picker.update();
+                	if(unitLocation.getDistance(picker.getCurrentTerrainPoint()) < 100) {
+                		System.out.println("unit selected");
+                		selectedUnit = unit;
+                	} else {
+                		System.out.println("unit not selected");
+                		selectedUnit = null;
+                	}
+            	} catch(NullPointerException e) {
+            		System.out.println("you clicked too far away.");
+            		e.printStackTrace();
+            	}
+            }
+            if(Mouse.isButtonDown(1)) {
+            	try {
             	picker.update();
-            	unit.setPosition(picker.getCurrentTerrainPoint());
+            	selectedUnit.setPosition(picker.getCurrentTerrainPoint());
+            	} catch(NullPointerException e) {
+            		System.out.println("there was no selected entity.");
+            		e.printStackTrace();
+            	}
             }
             renderer.processEntity(unit);
             renderer.processTerrain(terrain);

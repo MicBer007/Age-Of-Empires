@@ -52,7 +52,7 @@ public class MainGameLoop {
         units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 1, 1500, 5));
         
 //        units.get(0).setTarget(units.get(1));
-        units.get(1).setTarget(units.get(0));
+//        units.get(1).setTarget(units.get(0));
         
         for(Unit unit: units) {
         	unit.setBeingUsed(true);

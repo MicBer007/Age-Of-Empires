@@ -51,8 +51,10 @@ public class Unit extends Entity {
 	}
 
 	public void attack(Unit target) {
-		if(this.target.isBeingUsed() && this.beingUsed) {
-			target.setHealth(target.getHealth()-this.attack);
+		if(this.target != null) {
+			if(this.target.isBeingUsed() && this.beingUsed) {
+				target.setHealth(target.getHealth()-this.attack);
+			}
 		}
 	}
 

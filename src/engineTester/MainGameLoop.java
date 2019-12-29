@@ -48,10 +48,10 @@ public class MainGameLoop {
 
         List<Unit> units = new ArrayList<Unit>();
         
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 1, 100, 10));
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 1, 100, 5));
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 2, 1000, 10));
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 1, 1500, 5));
         
-        units.get(0).setTarget(units.get(1));
+//        units.get(0).setTarget(units.get(1));
         units.get(1).setTarget(units.get(0));
         
         for(Unit unit: units) {
@@ -94,6 +94,7 @@ public class MainGameLoop {
         for(Unit unit: units) {
         	System.out.println(unit.getHealth());
         	System.out.println(unit.getTarget());
+        	System.out.println(unit.isBeingUsed());
         }
         renderer.cleanUp();
         loader.cleanUp();

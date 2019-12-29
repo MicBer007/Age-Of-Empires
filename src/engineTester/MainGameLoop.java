@@ -15,11 +15,11 @@ import renderEngine.DisplayManager;
 import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import renderEngine.OBJLoader;
-import terrains.Location;
 import terrains.Terrain;
 import textures.ModelTexture;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
+import toolbox.Location;
 import toolbox.MousePicker;
 import entities.Camera;
 import entities.Entity;
@@ -45,20 +45,25 @@ public class MainGameLoop {
         
         RawModel unitRawModel = OBJLoader.loadObjModel("unit", loader);
         TexturedModel unitModel = new TexturedModel(unitRawModel, new ModelTexture(loader.loadTexture("unit")));
-        
 
-        Entity unit = new Entity(unitModel, new Vector3f(0, 0, 0), 0, 0, 0, 1);
-        Location unitLocation = new Location(unit.getPosition());
+        List<Unit> units = new ArrayList<Unit>();
         
-        List<Entity> units = new ArrayList<Entity>();
-        units.add(unit);
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 1, 100, 10));
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 1, 100, 5));
+        
+        units.get(0).setTarget(units.get(1));
+        units.get(1).setTarget(units.get(0));
+        
+        for(Unit unit: units) {
+        	unit.setBeingUsed(true);
+        }
         
         Terrain terrain = new Terrain(0,0,loader, texturePack, blendMap);
         Terrain terrain2 = new Terrain(1,0,loader, texturePack, blendMap);
         Terrain terrain3 = new Terrain(1,1,loader, texturePack, blendMap);
         Terrain terrain4 = new Terrain(0,1,loader, texturePack, blendMap);
         Light light = new Light(new Vector3f(0, 250, 0), new Vector3f(1, 1, 1));
-        Camera camera = new Camera(2.6f);   
+        Camera camera = new Camera(2.6f);
         MasterRenderer renderer = new MasterRenderer();
         
         camera.setPosition(new Vector3f(0, 150, 0));
@@ -67,35 +72,17 @@ public class MainGameLoop {
         
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
         
-        Entity selectedUnit = null;
-        
         while(!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_X)){
             camera.move();
-            if(Mouse.isButtonDown(0)) {
-            	try {
-            		picker.update();
-                	if(unitLocation.getDistance(picker.getCurrentTerrainPoint()) < 100) {
-                		System.out.println("unit selected");
-                		selectedUnit = unit;
-                	} else {
-                		System.out.println("unit not selected");
-                		selectedUnit = null;
-                	}
-            	} catch(NullPointerException e) {
-            		System.out.println("you clicked too far away.");
-            		e.printStackTrace();
+            for(Unit unit: units) {
+            	if(unit.isBeingUsed()) {
+            		unit.attack(unit.getTarget());
+            		renderer.processEntity(unit);
+            		if(unit.getHealth() <= 0) {
+            			units.get(units.indexOf(unit)).setBeingUsed(false);
+            		}
             	}
             }
-            if(Mouse.isButtonDown(1)) {
-            	try {
-            	picker.update();
-            	selectedUnit.setPosition(picker.getCurrentTerrainPoint());
-            	} catch(NullPointerException e) {
-            		System.out.println("there was no selected entity.");
-            		e.printStackTrace();
-            	}
-            }
-            renderer.processEntity(unit);
             renderer.processTerrain(terrain);
             renderer.processTerrain(terrain2);
             renderer.processTerrain(terrain3);
@@ -104,7 +91,10 @@ public class MainGameLoop {
             renderer.render(camera);
             DisplayManager.updateDisplay();
         }
- 
+        for(Unit unit: units) {
+        	System.out.println(unit.getHealth());
+        	System.out.println(unit.getTarget());
+        }
         renderer.cleanUp();
         loader.cleanUp();
         DisplayManager.closeDisplay();

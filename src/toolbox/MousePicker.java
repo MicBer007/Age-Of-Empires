@@ -16,14 +16,14 @@ public class MousePicker {
 	private static final int RECURSION_COUNT = 100;
 	private static final float RAY_RANGE = 600;
 
-	private Vector3f currentRay = new Vector3f();
+	private Location currentRay = new Location();
 
 	private Matrix4f projectionMatrix;
 	private Matrix4f viewMatrix;
 	private Camera camera;
 	
 	private Terrain terrain;
-	private Vector3f currentTerrainPoint;
+	private Location currentTerrainPoint;
 
 	public MousePicker(Camera cam, Matrix4f projection, Terrain terrain) {
 		camera = cam;
@@ -32,11 +32,11 @@ public class MousePicker {
 		this.terrain = terrain;
 	}
 	
-	public Vector3f getCurrentTerrainPoint() {
+	public Location getCurrentTerrainPoint() {
 		return currentTerrainPoint;
 	}
 
-	public Vector3f getCurrentRay() {
+	public Location getCurrentRay() {
 		return currentRay;
 	}
 
@@ -50,21 +50,21 @@ public class MousePicker {
 		}
 	}
 
-	private Vector3f calculateMouseRay() {
+	private Location calculateMouseRay() {
 		float mouseX = Mouse.getX();
 		float mouseY = Mouse.getY();
 		Vector2f normalizedCoords = getNormalisedDeviceCoordinates(mouseX, mouseY);
 		Vector4f clipCoords = new Vector4f(normalizedCoords.x, normalizedCoords.y, -1.0f, 1.0f);
 		Vector4f eyeCoords = toEyeCoords(clipCoords);
-		Vector3f worldRay = toWorldCoords(eyeCoords);
+		Location worldRay = toWorldCoords(eyeCoords);
 		return worldRay;
 	}
 
-	private Vector3f toWorldCoords(Vector4f eyeCoords) {
+	private Location toWorldCoords(Vector4f eyeCoords) {
 		Matrix4f invertedView = Matrix4f.invert(viewMatrix, null);
 		Vector4f rayWorld = Matrix4f.transform(invertedView, eyeCoords, null);
-		Vector3f mouseRay = new Vector3f(rayWorld.x, rayWorld.y, rayWorld.z);
-		mouseRay.normalise();
+		Location mouseRay = new Location(new Vector3f(rayWorld.x, rayWorld.y, rayWorld.z));
+		mouseRay.getPosition().normalise();
 		return mouseRay;
 	}
 
@@ -82,18 +82,18 @@ public class MousePicker {
 	
 	//**********************************************************
 	
-	private Vector3f getPointOnRay(Vector3f ray, float distance) {
+	private Location getPointOnRay(Location ray, float distance) {
 		Vector3f camPos = camera.getPosition();
 		Vector3f start = new Vector3f(camPos.x, camPos.y, camPos.z);
-		Vector3f scaledRay = new Vector3f(ray.x * distance, ray.y * distance, ray.z * distance);
-		return Vector3f.add(start, scaledRay, null);
+		Vector3f scaledRay = new Vector3f(ray.getPosition().x * distance, ray.getPosition().y * distance, ray.getPosition().z * distance);
+		return new Location(Vector3f.add(start, scaledRay, null));
 	}
 	
-	private Vector3f binarySearch(int count, float start, float finish, Vector3f ray) {
+	private Location binarySearch(int count, float start, float finish, Location ray) {
 		float half = start + ((finish - start) / 2f);
 		if (count >= RECURSION_COUNT) {
-			Vector3f endPoint = getPointOnRay(ray, half);
-			Terrain terrain = getTerrain(endPoint.getX(), endPoint.getZ());
+			Location endPoint = getPointOnRay(ray, half);
+			Terrain terrain = getTerrain(endPoint.getPosition().getX(), endPoint.getPosition().getZ());
 			if (terrain != null) {
 				return endPoint;
 			} else {
@@ -107,9 +107,9 @@ public class MousePicker {
 		}
 	}
 
-	private boolean intersectionInRange(float start, float finish, Vector3f ray) {
-		Vector3f startPoint = getPointOnRay(ray, start);
-		Vector3f endPoint = getPointOnRay(ray, finish);
+	private boolean intersectionInRange(float start, float finish, Location ray) {
+		Location startPoint = getPointOnRay(ray, start);
+		Location endPoint = getPointOnRay(ray, finish);
 		if (!isUnderGround(startPoint) && isUnderGround(endPoint)) {
 			return true;
 		} else {
@@ -117,13 +117,13 @@ public class MousePicker {
 		}
 	}
 
-	private boolean isUnderGround(Vector3f testPoint) {
-		Terrain terrain = getTerrain(testPoint.getX(), testPoint.getZ());
+	private boolean isUnderGround(Location testPoint) {
+		Terrain terrain = getTerrain(testPoint.getPosition().getX(), testPoint.getPosition().getZ());
 		float height = 0;
 		if (terrain != null) {
 			height = 0;
 		}
-		if (testPoint.y < height) {
+		if (testPoint.getPosition().y < height) {
 			return true;
 		} else {
 			return false;

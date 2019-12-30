@@ -12,9 +12,11 @@ import org.lwjgl.util.vector.Matrix4f;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
+import entities.Unit;
 import models.TexturedModel;
-import shaders.StaticShader;
+import shaders.EntityShader;
 import shaders.TerrainShader;
+import shaders.UnitShader;
 import terrains.Terrain;
 
 public class MasterRenderer {
@@ -29,13 +31,17 @@ public class MasterRenderer {
     
     private Matrix4f projectionMatrix;
 	
-	private StaticShader shader = new StaticShader();
-	private EntityRenderer renderer;
+	private EntityShader entityShader = new EntityShader();
+	private EntityRenderer entityRenderer;
 	
-	private TerrainRenderer terrainRenderer;
 	private TerrainShader terrainShader = new TerrainShader();
+	private TerrainRenderer terrainRenderer;
+	
+	private UnitShader unitShader = new UnitShader();
+	private UnitRenderer unitRenderer;
 	
 	private Map<TexturedModel, List<Entity>> entities = new HashMap<TexturedModel, List<Entity>>();
+	private Map<TexturedModel, List<Unit>> units = new HashMap<TexturedModel, List<Unit>>();
 	
 	private List<Terrain> terrains = new ArrayList<Terrain>();
 	private List<Light> lights = new ArrayList<Light>();
@@ -43,8 +49,9 @@ public class MasterRenderer {
 	public MasterRenderer() {
 		enableCulling();
         createProjectionMatrix();
-        renderer = new EntityRenderer(shader, projectionMatrix);
+        entityRenderer = new EntityRenderer(entityShader, projectionMatrix);
         terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
+        unitRenderer = new UnitRenderer(unitShader, projectionMatrix);
 	}
 	
 	public static void enableCulling() {
@@ -59,14 +66,14 @@ public class MasterRenderer {
 	public void render(Camera camera) {
 		
 		prepare();
-		shader.start();
-		shader.loadSkyColour(RED, GREEN, BLUE);
+		entityShader.start();
+		entityShader.loadSkyColour(RED, GREEN, BLUE);
 		for(Light light:lights) {
-			shader.loadLight(light);
+			entityShader.loadLight(light);
 		}
-		shader.loadViewMatrix(camera);
-		renderer.render(entities);
-		shader.stop();
+		entityShader.loadViewMatrix(camera);
+		entityRenderer.render(entities);
+		entityShader.stop();
 		terrainShader.start();
 		terrainShader.loadSkyColour(RED, GREEN, BLUE);
 		for(Light light:lights) {
@@ -75,8 +82,17 @@ public class MasterRenderer {
 		terrainShader.loadViewMatrix(camera);
 		terrainRenderer.render(terrains);
 		terrainShader.stop();
+		unitShader.start();
+		unitShader.loadSkyColour(RED, GREEN, BLUE);
+		for(Light light:lights) {
+			unitShader.loadLight(light);
+		}
+		unitShader.loadViewMatrix(camera);
+		unitRenderer.render(units);
+		unitShader.stop();
 		terrains.clear();
 		entities.clear();
+		units.clear();
 		
 	}
 	
@@ -102,8 +118,22 @@ public class MasterRenderer {
 		
 	}
 	
+	public void processUnit(Unit unit) {
+		
+		TexturedModel unitModel = unit.getModel();
+		List<Unit> batch = units.get(unitModel);
+		if(batch != null) {
+			batch.add(unit);
+		}else {
+			List<Unit> newBatch = new ArrayList<Unit>();
+			newBatch.add(unit);
+			units.put(unitModel, newBatch);
+		}
+		
+	}
+	
 	public void cleanUp() {
-		shader.cleanUp();
+		entityShader.cleanUp();
 		terrainShader.cleanUp();
 	}
 	

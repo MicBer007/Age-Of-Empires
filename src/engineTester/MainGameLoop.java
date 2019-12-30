@@ -51,15 +51,15 @@ public class MainGameLoop {
 
         List<Unit> units = new ArrayList<Unit>();
         
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 10, 1000, 5, 3));
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 2, 1000, 5, 4));
-        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 0)), 0, 0, 0, 10, 1000, 5, 3));
-        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 50)), 0, 0, 0, 2, 1000, 5, 2));
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 10, 10000, 5, 3));
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 2, 10000, 5, 4));
+        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 0)), 0, 0, 0, 10, 10000, 5, 3));
+        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 50)), 0, 0, 0, 2, 10000, 5, 2));
         units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 100)), 0, 0, 0, 1, 10000, 5, 0));
-        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 100)), 0, 0, 0, 5, 1000, 5, 1));
-        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 100)), 0, 0, 0, 5, 1000, 5, 1));
-        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 50)), 0, 0, 0, 5, 1000, 5, 1));
-        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 0)), 0, 0, 0, 5, 1000, 5, 1));
+        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 100)), 0, 0, 0, 5, 10000, 5, 1));
+        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 100)), 0, 0, 0, 5, 10000, 5, 1));
+        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 50)), 0, 0, 0, 5, 10000, 5, 1));
+        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 0)), 0, 0, 0, 5, 10000, 5, 1));
         
         units.get(0).setTarget(units.get(2));
         units.get(1).setTarget(units.get(3));
@@ -87,7 +87,7 @@ public class MainGameLoop {
             for(Unit unit: units) {
             	if(unit.isBeingUsed()) {
             		unit.attack(unit.getTarget());
-            		renderer.processEntity(unit);
+            		renderer.processUnit(unit);
             		if(unit.getTarget() == null) {
             			unit.getNewTarget(units);
             		} else if(!unit.getTarget().isBeingUsed()) {

@@ -11,33 +11,39 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
 
 import shaders.EntityShader;
+import shaders.UnitShader;
 import textures.ModelTexture;
 import toolbox.Maths;
 
 import entities.Entity;
+import entities.Unit;
 
-public class EntityRenderer {
+public class UnitRenderer {
 	
-    private EntityShader shader;
+    private UnitShader shader;
     
-    public EntityRenderer(EntityShader shader, Matrix4f projectionMatrix) {
+    public UnitRenderer(UnitShader shader, Matrix4f projectionMatrix) {
     	this.shader = shader;
         shader.start();
         shader.loadProjectionMatrix(projectionMatrix);
         shader.stop();
     }
     
-	public void render(Map<TexturedModel, List<Entity>> entities) {
+	public void render(Map<TexturedModel, List<Unit>> units) {
     	
-    	for(TexturedModel model: entities.keySet()) {
+    	for(TexturedModel model: units.keySet()) {
+    		
+    		List<Unit> batch = units.get(model);
+    		
+    		Vector3f UnitColour = batch.get(0).getTeamColour();
     		
     		prepareTexturedModel(model);
-    		List<Entity> batch = entities.get(model);
     		
-    		for(Entity entity : batch) {
-    			prepareInstance(entity);
+    		for(Unit unit : batch) {
+    			prepareInstance(unit);
     			GL11.glDrawElements(GL11.GL_TRIANGLES, model.getRawModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
     		}
     		unbindTexturedModel();
@@ -72,9 +78,10 @@ public class EntityRenderer {
     	
     }
     
-    private void prepareInstance(Entity entity) {
-    	Matrix4f transformationMatrix = Maths.createTransformationMatrix(entity.getLocation(),
-                entity.getRotX(), entity.getRotY(), entity.getRotZ(), entity.getScale());
+    private void prepareInstance(Unit unit) {
+        shader.loadUnitColour(unit.getTeamColour());
+    	Matrix4f transformationMatrix = Maths.createTransformationMatrix(unit.getLocation(),
+    			unit.getRotX(), unit.getRotY(), unit.getRotZ(), unit.getScale());
         shader.loadTransformationMatrix(transformationMatrix);
     }
     

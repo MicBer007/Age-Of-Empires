@@ -2,7 +2,8 @@ package engineTester;
  
 import java.util.ArrayList;
 import java.util.List;
- 
+import java.util.Random;
+
 import models.RawModel;
 import models.TexturedModel;
 
@@ -33,6 +34,8 @@ public class MainGameLoop {
         DisplayManager.createDisplay("");
         Loader loader = new Loader();
         
+        Random random = new Random();
+        
         TerrainTexture backgroundTexture = new TerrainTexture(loader.loadTexture("grassTerrainTile"));
         TerrainTexture rTexture = new TerrainTexture(loader.loadTexture("dirtTerrainTile"));
         TerrainTexture gTexture = new TerrainTexture(loader.loadTexture("flowerTerrainTile"));
@@ -48,11 +51,18 @@ public class MainGameLoop {
 
         List<Unit> units = new ArrayList<Unit>();
         
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 2, 1000, 10));
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 1, 1500, 5));
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 10, 1000, 5, 3));
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 2, 1000, 5, 4));
+        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 0)), 0, 0, 0, 10, 1000, 5, 3));
+        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 50)), 0, 0, 0, 2, 1000, 5, 2));
+        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 100)), 0, 0, 0, 1, 10000, 5, 0));
+        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 100)), 0, 0, 0, 5, 1000, 5, 1));
+        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 100)), 0, 0, 0, 5, 1000, 5, 1));
+        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 50)), 0, 0, 0, 5, 1000, 5, 1));
+        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 0)), 0, 0, 0, 5, 1000, 5, 1));
         
-//        units.get(0).setTarget(units.get(1));
-//        units.get(1).setTarget(units.get(0));
+        units.get(0).setTarget(units.get(2));
+        units.get(1).setTarget(units.get(3));
         
         for(Unit unit: units) {
         	unit.setBeingUsed(true);
@@ -78,6 +88,11 @@ public class MainGameLoop {
             	if(unit.isBeingUsed()) {
             		unit.attack(unit.getTarget());
             		renderer.processEntity(unit);
+            		if(unit.getTarget() == null) {
+            			unit.getNewTarget(units);
+            		} else if(!unit.getTarget().isBeingUsed()) {
+            			unit.getNewTarget(units);
+            		}
             		if(unit.getHealth() <= 0) {
             			units.get(units.indexOf(unit)).setBeingUsed(false);
             		}

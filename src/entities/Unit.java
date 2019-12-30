@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.List;
+
 import models.TexturedModel;
 import toolbox.Location;
 
@@ -12,10 +14,13 @@ public class Unit extends Entity {
 	
 	private boolean beingUsed = false;
 	
-	public Unit(TexturedModel model, Location location, float rotX, float rotY, float rotZ, float scale, float health, float attack) {
+	private int team;
+	
+	public Unit(TexturedModel model, Location location, float rotX, float rotY, float rotZ, float scale, float health, float attack, int team) {
 		super(model, location, rotX, rotY, rotZ, scale);
 		this.health = health;
 		this.attack = attack;
+		this.team = team;
 	}
 	
 	public float getHealth() {
@@ -38,8 +43,12 @@ public class Unit extends Entity {
 		return target;
 	}
 
-	public void setTarget(Unit target) {
-		this.target = target;
+	public boolean setTarget(Unit target) {
+		if(target.team != this.team) {
+			this.target = target;
+			return true;
+		}
+		return false;
 	}
 	
 	public boolean isBeingUsed() {
@@ -50,12 +59,31 @@ public class Unit extends Entity {
 		this.beingUsed = beingUsed;
 	}
 
+	public int getTeam() {
+		return team;
+	}
+
+	public void setTeam(int team) {
+		this.team = team;
+	}
+
 	public void attack(Unit target) {
 		if(this.target != null) {
 			if(this.target.isBeingUsed() && this.beingUsed) {
 				target.setHealth(target.getHealth()-this.attack);
+				target.setTarget(this);
 			}
 		}
+	}
+	
+	public boolean getNewTarget(List<Unit> units) {
+		for(Unit unit: units) {
+			if(unit.team != this.team && unit.beingUsed) {
+				this.target = unit;
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

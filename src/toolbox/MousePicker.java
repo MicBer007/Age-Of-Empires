@@ -14,7 +14,7 @@ import entities.Camera;
 public class MousePicker {
 
 	private static final int RECURSION_COUNT = 100;
-	private static final float RAY_RANGE = 600;
+	private static final float RAY_RANGE = 1000;
 
 	private Location currentRay = new Location();
 

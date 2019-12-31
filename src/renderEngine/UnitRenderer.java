@@ -38,8 +38,6 @@ public class UnitRenderer {
     		
     		List<Unit> batch = units.get(model);
     		
-    		Vector3f UnitColour = batch.get(0).getTeamColour();
-    		
     		prepareTexturedModel(model);
     		
     		for(Unit unit : batch) {

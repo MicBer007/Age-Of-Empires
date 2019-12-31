@@ -25,6 +25,7 @@ import toolbox.MousePicker;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
+import entities.MobileUnit;
 import entities.Unit;
  
 public class MainGameLoop {
@@ -49,20 +50,9 @@ public class MainGameLoop {
         RawModel unitRawModel = OBJLoader.loadObjModel("unit", loader);
         TexturedModel unitModel = new TexturedModel(unitRawModel, new ModelTexture(loader.loadTexture("unit")));
 
-        List<Unit> units = new ArrayList<Unit>();
+        List<MobileUnit> units = new ArrayList<MobileUnit>();
         
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 10, 10000, 5, 3));
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 50)), 0, 0, 0, 2, 10000, 5, 4));
-        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 0)), 0, 0, 0, 10, 10000, 5, 3));
-        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 50)), 0, 0, 0, 2, 10000, 5, 2));
-        units.add(new Unit(unitModel, new Location(new Vector3f(0, 0, 100)), 0, 0, 0, 1, 10000, 5, 0));
-        units.add(new Unit(unitModel, new Location(new Vector3f(50, 0, 100)), 0, 0, 0, 5, 10000, 5, 1));
-        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 100)), 0, 0, 0, 5, 10000, 5, 1));
-        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 50)), 0, 0, 0, 5, 10000, 5, 1));
-        units.add(new Unit(unitModel, new Location(new Vector3f(100, 0, 0)), 0, 0, 0, 5, 10000, 5, 1));
-        
-        units.get(0).setTarget(units.get(2));
-        units.get(1).setTarget(units.get(3));
+        units.add(new MobileUnit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 10, 10000, 5, 3, 1));
         
         for(Unit unit: units) {
         	unit.setBeingUsed(true);
@@ -73,31 +63,58 @@ public class MainGameLoop {
         Terrain terrain3 = new Terrain(1,1,loader, texturePack, blendMap);
         Terrain terrain4 = new Terrain(0,1,loader, texturePack, blendMap);
         Light light = new Light(new Vector3f(0, 250, 0), new Vector3f(1, 1, 1));
-        Camera camera = new Camera(2.6f);
+        Camera camera = new Camera(7);
         MasterRenderer renderer = new MasterRenderer();
         
         camera.setPosition(new Vector3f(0, 150, 0));
         camera.setPitch(65);
         camera.setYaw(45);
         
+        MobileUnit selectedUnit = units.get(0);
+        
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrain);
         
         while(!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_X)){
             camera.move();
-            for(Unit unit: units) {
-            	if(unit.isBeingUsed()) {
-            		unit.attack(unit.getTarget());
-            		renderer.processUnit(unit);
-            		if(unit.getTarget() == null) {
-            			unit.getNewTarget(units);
-            		} else if(!unit.getTarget().isBeingUsed()) {
-            			unit.getNewTarget(units);
-            		}
-            		if(unit.getHealth() <= 0) {
-            			units.get(units.indexOf(unit)).setBeingUsed(false);
+//            for(Unit unit: units) {
+//            	if(unit.isBeingUsed()) {
+//            		unit.attack(unit.getTarget());
+//            		renderer.processUnit(unit);
+//            		if(unit.getTarget() == null) {
+//            			unit.getNewTarget(units);
+//            		} else if(!unit.getTarget().isBeingUsed()) {
+//            			unit.getNewTarget(units);
+//            		}
+//            		if(unit.getHealth() <= 0) {
+//            			units.get(units.indexOf(unit)).setBeingUsed(false);
+//            		}
+//            	}
+//            }
+            if(Mouse.isButtonDown(1)) {
+            	if(selectedUnit != null) {
+            		try {
+                        picker.update();
+            			selectedUnit.setDestination(picker.getCurrentTerrainPoint().getPosition());
+            		} catch(NullPointerException e) {
+            			e.printStackTrace();
             		}
             	}
             }
+
+            picker.update();
+            for(MobileUnit unit: units) {
+            	if(unit.isBeingUsed()) {
+            		renderer.processUnit(unit);
+            		
+            		unit.move();
+            		if(Mouse.isButtonDown(0)) {
+            			if(unit.getLocation().getDistance(picker.getCurrentTerrainPoint()) <= 100) {
+            				selectedUnit = unit;
+            			}
+            		}
+            	}
+            }
+            
             renderer.processTerrain(terrain);
             renderer.processTerrain(terrain2);
             renderer.processTerrain(terrain3);
@@ -106,10 +123,12 @@ public class MainGameLoop {
             renderer.render(camera);
             DisplayManager.updateDisplay();
         }
-        for(Unit unit: units) {
+        for(MobileUnit unit: units) {
         	System.out.println(unit.getHealth());
         	System.out.println(unit.getTarget());
         	System.out.println(unit.isBeingUsed());
+        	System.out.println(unit.isReachedDestination());
+        	System.out.println(unit.getDestination());
         }
         renderer.cleanUp();
         loader.cleanUp();

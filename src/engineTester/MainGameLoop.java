@@ -21,7 +21,9 @@ import textures.ModelTexture;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
 import toolbox.Location;
+import toolbox.Maths;
 import toolbox.MousePicker;
+import entities.Building;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
@@ -47,15 +49,25 @@ public class MainGameLoop {
         
         TerrainTexture blendMap = new TerrainTexture(loader.loadTexture("blendMap2"));
         
-        RawModel unitRawModel = OBJLoader.loadObjModel("unit", loader);
+        RawModel unitRawModel = OBJLoader.loadObjModel("unit");
         TexturedModel unitModel = new TexturedModel(unitRawModel, new ModelTexture(loader.loadTexture("unit")));
+        
+        ModelTexture healthBar = new ModelTexture(loader.loadTexture("healthBar"));
 
         List<MobileUnit> units = new ArrayList<MobileUnit>();
         
-        units.add(new MobileUnit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 10, 10000, 5, 3, 1));
+        units.add(new MobileUnit(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 10, 20000, 10, 1, 1));
         
-        for(Unit unit: units) {
+        for(MobileUnit unit: units) {
         	unit.setBeingUsed(true);
+        }
+        
+        List<Building> buildings = new ArrayList<Building>();
+        
+        buildings.add(new Building(unitModel, new Location(new Vector3f(0, 0, 0)), 0, 0, 0, 4, 10000, 1, 0));
+        
+        for(Building building: buildings) {
+        	building.setBeingUsed(true);
         }
         
         Terrain terrain = new Terrain(0,0,loader, texturePack, blendMap);
@@ -66,7 +78,7 @@ public class MainGameLoop {
         Camera camera = new Camera(7);
         MasterRenderer renderer = new MasterRenderer();
         
-        camera.setPosition(new Vector3f(0, 150, 0));
+        camera.setPosition(new Vector3f(0, 50, 0));
         camera.setPitch(65);
         camera.setYaw(45);
         
@@ -76,25 +88,25 @@ public class MainGameLoop {
         
         while(!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_X)){
             camera.move();
-//            for(Unit unit: units) {
-//            	if(unit.isBeingUsed()) {
-//            		unit.attack(unit.getTarget());
-//            		renderer.processUnit(unit);
-//            		if(unit.getTarget() == null) {
-//            			unit.getNewTarget(units);
-//            		} else if(!unit.getTarget().isBeingUsed()) {
-//            			unit.getNewTarget(units);
-//            		}
-//            		if(unit.getHealth() <= 0) {
-//            			units.get(units.indexOf(unit)).setBeingUsed(false);
-//            		}
-//            	}
-//            }
-            if(Mouse.isButtonDown(1)) {
-            	if(selectedUnit != null) {
+            for(Building building: buildings) {
+            	if(building.isBeingUsed()) {
+            		if(Keyboard.isKeyDown(Keyboard.KEY_M)) {
+                		building.createUnit(unitModel, units);
+                	}
+                	building.attackTarget();
+                	renderer.processUnit(building);
+            	}
+            	if(building.getTarget() == null || !building.getTarget().isBeingUsed()) {
+            		if(building.NewUnitTarget(units)){
+            			building.NewBuildingTarget(buildings);
+            		}
+            	}
+            }
+            if(selectedUnit != null) {
+            	if(Mouse.isButtonDown(1)) {
             		try {
-                        picker.update();
-            			selectedUnit.setDestination(picker.getCurrentTerrainPoint().getPosition());
+            			picker.update();
+            			selectedUnit.setDestination(picker.getCurrentTerrainPoint());
             		} catch(NullPointerException e) {
             			e.printStackTrace();
             		}
@@ -105,8 +117,13 @@ public class MainGameLoop {
             for(MobileUnit unit: units) {
             	if(unit.isBeingUsed()) {
             		renderer.processUnit(unit);
-            		
             		unit.move();
+            		unit.attackTarget();
+            		if(unit.getTarget() == null || !unit.getTarget().isBeingUsed()) {
+            			if(!unit.NewUnitTarget(units)) {
+            				unit.NewBuildingTarget(buildings);
+            			}
+            		}
             		if(Mouse.isButtonDown(0)) {
             			if(unit.getLocation().getDistance(picker.getCurrentTerrainPoint()) <= 100) {
             				selectedUnit = unit;
@@ -114,7 +131,6 @@ public class MainGameLoop {
             		}
             	}
             }
-            
             renderer.processTerrain(terrain);
             renderer.processTerrain(terrain2);
             renderer.processTerrain(terrain3);
@@ -129,6 +145,11 @@ public class MainGameLoop {
         	System.out.println(unit.isBeingUsed());
         	System.out.println(unit.isReachedDestination());
         	System.out.println(unit.getDestination());
+        }
+        for(Building building: buildings) {
+        	System.out.println(building.getHealth());
+        	System.out.println(building.getTarget());
+        	System.out.println(building.isBeingUsed());
         }
         renderer.cleanUp();
         loader.cleanUp();

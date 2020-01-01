@@ -14,7 +14,7 @@ public class Unit extends Entity {
 	
 	private Unit target;
 	
-	private boolean beingUsed = false;
+	private boolean beingUsed = true;
 	
 	private int team;
 	
@@ -89,18 +89,31 @@ public class Unit extends Entity {
 	public void setTeamColour(Vector3f teamColour) {
 		this.teamColour = teamColour;
 	}
-
-	public void attack(Unit target) {
-		if(this.target != null) {
-			if(this.target.isBeingUsed() && this.beingUsed) {
-				target.setHealth(target.getHealth()-this.attack);
+	
+	public void attackTarget() {
+		if(this.target != null && this.target.beingUsed) {
+			if(beingUsed) {
+				target.setHealth(target.getHealth()-attack);
 				target.setTarget(this);
+				if(target.getHealth() <= 0) {
+					target.beingUsed = false;
+				}
 			}
 		}
 	}
 	
-	public boolean getNewTarget(List<Unit> units) {
+	public boolean NewUnitTarget(List<MobileUnit> units) {
 		for(Unit unit: units) {
+			if(unit.team != this.team && unit.beingUsed) {
+				this.target = unit;
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean NewBuildingTarget(List<Building> buildings) {
+		for(Unit unit: buildings) {
 			if(unit.team != this.team && unit.beingUsed) {
 				this.target = unit;
 				return true;

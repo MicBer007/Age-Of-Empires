@@ -1,7 +1,5 @@
 package entities;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import models.TexturedModel;
 import toolbox.Location;
 
